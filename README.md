@@ -53,6 +53,21 @@ launchToken({ name, symbol, state, wallet }) · subscribe(listener)
 
 `src/services/tokenLauncher.ts` currently exports a `MockTokenService`. It uses **development data** (invented tickers and market caps), drifts them slowly so the map feels alive, and records launches locally after the wallet signs a claim message. To go live, implement the interface against your launch program / indexer / market-data API and export it from `tokenLauncher.ts`. Nothing in the UI changes.
 
+## Supabase
+
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (see `.env.example`) and the app reads and writes Supabase instead of the mock. Without them it falls back to mock data.
+
+```
+supabase link --project-ref <your-ref>
+supabase db push                 # creates public.tokens, RLS, realtime
+supabase db seed                 # optional: development rows (is_mock = true)
+supabase functions deploy claim  # signature-verified claims
+```
+
+- **Reads:** anyone can `select` from `tokens` (RLS). Realtime pushes changes, so every open map updates live.
+- **Writes:** browsers cannot insert. A claim calls the `claim` Edge Function. It rebuilds the claim message, checks the wallet's ed25519 signature and that the message is under 5 minutes old, then inserts with the service role. A duplicate ticker in the same state is rejected.
+- **Market caps:** `market_cap` starts at a placeholder. Your indexer or market-data job should update it. Map territories follow automatically.
+
 ## Wallets
 
 Uses `@solana/wallet-adapter-react` with Wallet Standard discovery, so Phantom, Solflare, Backpack and others are detected without per-wallet packages. In development (or with `VITE_ENABLE_DEMO_WALLET=true`), a **Preview Wallet** with no funds is also listed, so the whole flow can be walked without an extension.

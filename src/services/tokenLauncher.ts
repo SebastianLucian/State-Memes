@@ -1,11 +1,15 @@
 import { MockTokenService } from './mockTokenService'
+import { SupabaseTokenService } from './supabaseTokenService'
+import { supabase } from '../lib/supabase/client'
 import type { LaunchParams, TokenService } from './types'
 
 /**
- * The single seam between UI and chain.
- * Today: a development mock. Later: Solana RPC / indexer / backend — same interface.
+ * The single seam between UI and data.
+ * With VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY set: Supabase.
+ * Otherwise: the development mock.
  */
-export const tokenService: TokenService = new MockTokenService()
+export const tokenService: TokenService = supabase ? new SupabaseTokenService(supabase) : new MockTokenService()
+export const usingMockService = !supabase
 
 export const getStates = () => tokenService.getStates()
 export const getTokensByState = (stateId: string) => tokenService.getTokensByState(stateId)

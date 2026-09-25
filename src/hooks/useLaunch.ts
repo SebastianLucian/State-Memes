@@ -68,9 +68,12 @@ export function useLaunch() {
       })
       wallet.refreshBalance()
     } catch (err) {
-      const msg = err instanceof Error && /reject|declin|denied|cancel/i.test(err.message)
+      const text = err instanceof Error ? err.message : ''
+      const msg = /reject|declin|denied|cancel/i.test(text)
         ? 'Signature declined. Your claim was not made.'
-        : 'The claim could not be completed. Try again.'
+        : text && text.length < 90
+          ? text
+          : 'The claim could not be completed. Try again.'
       appStore.set({ launch: { ...appStore.get().launch, step: 'confirm', error: msg }, claiming: null })
     }
   }, [wallet])

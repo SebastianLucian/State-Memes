@@ -1,6 +1,7 @@
 import { STATES } from '../data/states'
 import { buildMockTokens, INK_LIST } from '../data/mockTokens'
 import { summarize } from './summaries'
+import { claimMessage } from './claimMessage'
 import type { LaunchParams, LaunchResult, StateToken, TokenEvent, TokenService } from './types'
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -16,9 +17,6 @@ function bytesToBase58ish(bytes: Uint8Array) {
   return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
 }
 
-export function claimMessage(p: Pick<LaunchParams, 'name' | 'symbol' | 'state'>) {
-  return `THE FRONTIER\n\nI stake a claim in ${p.state}.\nToken: ${p.name} ($${p.symbol})\n\n${new Date().toISOString()}`
-}
 
 /**
  * Development implementation. Market caps drift slowly so territories feel alive,
@@ -49,7 +47,7 @@ export class MockTokenService implements TokenService {
   }
 
   async launchToken({ name, symbol, state, wallet }: LaunchParams): Promise<LaunchResult> {
-    const message = new TextEncoder().encode(claimMessage({ name, symbol, state }))
+    const message = new TextEncoder().encode(claimMessage({ name, symbol, state, issuedAt: new Date().toISOString() }))
     let signature: string
     if (wallet.signMessage) {
       // A real wallet prompt — the user signs their claim. Replace with the

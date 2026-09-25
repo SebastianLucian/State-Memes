@@ -25,13 +25,16 @@ function apply(tokens: StateToken[]) {
 export function useTokenData() {
   useEffect(() => {
     let alive = true
-    tokenService.getStates().then((states) => {
-      if (!alive) return
-      apply(states.flatMap((s) => s.tokens))
-    })
+    tokenService
+      .getStates()
+      .then((states) => {
+        if (alive) apply(states.flatMap((s) => s.tokens))
+      })
+      .catch((err) => console.error('Could not load token data', err))
     const off = tokenService.subscribe((e) => {
-      if (e.type === 'update') apply(e.tokens)
-      else apply([...appStore.get().tokens, e.token])
+      if (e.type === 'update') return apply(e.tokens)
+      const current = appStore.get().tokens
+      if (!current.some((t) => t.id === e.token.id)) apply([...current, e.token])
     })
     return () => {
       alive = false

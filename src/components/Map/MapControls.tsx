@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { mapRuntime } from '../../lib/map/runtime'
 import { flyToRegion } from '../../lib/map/camera'
 import { pointer } from '../../lib/map/pointer'
-import { appStore } from '../../lib/store/appStore'
+import { appStore, useApp } from '../../lib/store/appStore'
 
 function fmtCoord(v: number, pos: string, neg: string) {
   const a = Math.abs(v)
@@ -13,6 +13,7 @@ function fmtCoord(v: number, pos: string, neg: string) {
 
 /** Atlas furniture: north arrow, scale, insets, coordinates, attribution. */
 export function MapControls() {
+  const hasMockData = useApp((s) => s.tokens.some((t) => t.mock))
   const coordRef = useRef<HTMLSpanElement>(null)
   const scaleBarRef = useRef<HTMLDivElement>(null)
   const scaleLabelRef = useRef<HTMLSpanElement>(null)
@@ -93,7 +94,7 @@ export function MapControls() {
         </div>
         <div className="label text-[9px] leading-[1.6] tracking-[0.14em] text-ink/45">
           <div className="max-sm:hidden">50 States · One Frontier</div>
-          <div className="text-brick/70">Illustrative data · not real tokens</div>
+          {hasMockData && <div className="text-brick/70">Illustrative data · not real tokens</div>}
           <div className="pointer-events-auto normal-case tracking-[0.04em]">
             <a href="https://openfreemap.org" target="_blank" rel="noreferrer" className="hover:text-ink">
               OpenFreeMap

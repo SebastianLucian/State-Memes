@@ -5,6 +5,7 @@ import {
   WalletSignTransactionError,
   type WalletName,
 } from '@solana/wallet-adapter-base'
+import nacl from 'tweetnacl'
 import { Keypair, type PublicKey, type Transaction, type VersionedTransaction } from '@solana/web3.js'
 
 export const DemoWalletName = 'Preview Wallet' as WalletName<'Preview Wallet'>
@@ -16,7 +17,8 @@ const ICON =
   )
 
 /**
- * Development-only wallet. It has no funds and signs nothing on-chain; it lets
+ * Development-only wallet. It has no funds and signs nothing on-chain (only
+ * messages, with a throwaway key); it lets
  * the launch flow be exercised end to end without a browser extension.
  */
 export class DemoWalletAdapter extends BaseMessageSignerWalletAdapter {
@@ -58,9 +60,10 @@ export class DemoWalletAdapter extends BaseMessageSignerWalletAdapter {
     throw new WalletSignTransactionError('The preview wallet cannot sign transactions.')
   }
 
-  async signMessage(): Promise<Uint8Array> {
+  /** A real ed25519 signature from a throwaway key, so server-side verification works. */
+  async signMessage(message: Uint8Array): Promise<Uint8Array> {
     if (!this._keypair) throw new WalletNotConnectedError()
-    await new Promise((r) => setTimeout(r, 1100))
-    return crypto.getRandomValues(new Uint8Array(64))
+    await new Promise((r) => setTimeout(r, 900))
+    return nacl.sign.detached(message, this._keypair.secretKey)
   }
 }
